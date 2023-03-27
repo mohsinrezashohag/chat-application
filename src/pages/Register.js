@@ -1,7 +1,48 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import logoImage from "../assets/images/lws-logo-light.svg";
+import Error from "../components/ui/Error";
+import { useUserRegisterMutation } from "../features/auth/authApi";
 
 export default function Register() {
+
+
+    const [error, seTError] = useState("")
+    const [input, setInput] = useState({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        agreed: false
+    })
+
+    // handle submit 
+    const [registerUser, { data, isLoading, error: resultError }] = useUserRegisterMutation()
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+
+        if (input.password !== input.confirmPassword) {
+            seTError("Password does not matched")
+        }
+        else {
+            registerUser(input)
+        }
+    }
+
+    const navigate = useNavigate()
+    useEffect(() => {
+        if (resultError?.data) {
+            seTError(resultError?.data)
+        }
+        if (data?.accessToken) {
+            navigate('/inbox')
+        }
+    }, [data, resultError, navigate])
+
+
+
+
     return (
         <div className="grid place-items-center h-screen bg-[#F9FAFB">
             <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -18,19 +59,28 @@ export default function Register() {
                             Create your account
                         </h2>
                     </div>
-                    <form className="mt-8 space-y-6" action="#" method="POST">
+
+
+
+
+                    <form onSubmit={handleSubmit} className="mt-8 space-y-6" action="#" method="POST">
                         <input type="hidden" name="remember" value="true" />
                         <div className="rounded-md shadow-sm -space-y-px">
+
+
                             <div>
                                 <label htmlFor="name" className="sr-only">
                                     Full Name
                                 </label>
                                 <input
+                                    onChange={(e) => setInput({ ...input, name: e.target.value })}
+                                    value={input.name}
                                     id="name"
-                                    name="Name"
-                                    type="Name"
+                                    name="name"
+                                    type="name"
                                     autoComplete="Name"
                                     required
+
                                     className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-violet-500 focus:border-violet-500 focus:z-10 sm:text-sm"
                                     placeholder="Name"
                                 />
@@ -44,6 +94,8 @@ export default function Register() {
                                     Email address
                                 </label>
                                 <input
+                                    onChange={(e) => setInput({ ...input, email: e.target.value })}
+                                    value={input.email}
                                     id="email-address"
                                     name="email"
                                     type="email"
@@ -54,11 +106,14 @@ export default function Register() {
                                 />
                             </div>
 
+
                             <div>
                                 <label htmlFor="password" className="sr-only">
                                     Password
                                 </label>
                                 <input
+                                    onChange={(e) => setInput({ ...input, password: e.target.value })}
+                                    value={input.password}
                                     id="password"
                                     name="password"
                                     type="password"
@@ -69,6 +124,8 @@ export default function Register() {
                                 />
                             </div>
 
+
+
                             <div>
                                 <label
                                     htmlFor="confirmPassword"
@@ -77,6 +134,8 @@ export default function Register() {
                                     Confirm Password
                                 </label>
                                 <input
+                                    onChange={(e) => setInput({ ...input, confirmPassword: e.target.value })}
+                                    value={input.confirmPassword}
                                     id="confirmPassword"
                                     name="confirmPassword"
                                     type="confirmPassword"
@@ -86,13 +145,18 @@ export default function Register() {
                                     placeholder="confirmPassword"
                                 />
                             </div>
+
+
+
                         </div>
 
                         <div className="flex items-center justify-between">
                             <div className="flex items-center">
                                 <input
-                                    id="remember-me"
-                                    name="remember-me"
+                                    onChange={(e) => setInput({ ...input, agreed: e.target.checked })}
+                                    checked={input.agreed}
+                                    id="agreed"
+                                    name="agreed"
                                     type="checkbox"
                                     className="h-4 w-4 text-violet-600 focus:ring-violet-500 border-gray-300 rounded"
                                 />
@@ -113,8 +177,13 @@ export default function Register() {
                                 <span className="absolute left-0 inset-y-0 flex items-center pl-3"></span>
                                 Sign up
                             </button>
+
+
                         </div>
                     </form>
+
+                    {!isLoading && error && <Error message={error}></Error>}
+
                 </div>
             </div>
         </div>
